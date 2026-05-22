@@ -33,6 +33,9 @@ body{
 .menu .btns .opt:hover{background:#333}
 .menu .tip{margin-top:8px;font-size:11px;color:#555;line-height:1.5}
 .menu .tip span{color:#e94560}
+.menu-auth{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:center}
+.menu-auth .user{display:flex;align-items:center;gap:6px;font-size:11px;color:#888}
+.menu-auth .user span{color:#aaa}
 
 .game{display:none;flex-direction:column;padding:12px 14px;gap:6px}
 .game.show{display:flex}
@@ -161,8 +164,15 @@ body{
         <button class="opt" id="addMemeBtn">+ добавить мем</button>
     </div>
     <div class="tip">
-        <span>43 мема</span> • таймер 3 мин • 3 жизни<br>
-        угадай все мемы чтобы победить
+        <span>43 мема</span> • таймер 3 мин • 3 жизни
+    </div>
+    <div class="menu-auth" id="menuAuth">
+        <button class="opt" id="leaderBtn">🏆 топ</button>
+        <button class="opt" id="authBtn">войти</button>
+        <div class="user" id="userInfo" style="display:none">
+            <span id="userEmail"></span>
+            <button class="opt" id="logoutBtn">выйти</button>
+        </div>
     </div>
 </div>
 
@@ -203,6 +213,31 @@ body{
     <button class="menu-btn" id="loseMenu">в меню</button>
 </div>
 
+<div class="scr over" id="leadScr">
+    <div class="icon">🏆</div>
+    <h2>топ игроков</h2>
+    <div class="st" id="leadList" style="width:100%;text-align:left;font-size:12px;max-height:300px;overflow-y:auto"></div>
+    <button class="menu-btn" id="leadBack">назад</button>
+</div>
+
+<div class="modal" id="authModal">
+    <div class="modal-inner" style="max-width:340px">
+        <h3 id="authTitle">войти</h3>
+        <label>email</label>
+        <input type="email" id="authEmail" placeholder="email@example.com">
+        <label>пароль</label>
+        <input type="password" id="authPass" placeholder="мин 6 символов">
+        <div class="modal-btns">
+            <button class="m-cancel" id="authCancel">отмена</button>
+            <button class="m-save" id="authAction">войти</button>
+        </div>
+        <div style="text-align:center;font-size:11px;color:#555">
+            нет аккаунта? <span id="authToggle" style="color:#e94560;cursor:pointer">зарегистрироваться</span>
+        </div>
+        <div id="authError" style="font-size:11px;color:#e74c3c;text-align:center;min-height:16px"></div>
+    </div>
+</div>
+
 <div class="modal" id="modal">
     <div class="modal-inner">
         <h3 id="mTitle">+ добавить мем</h3>
@@ -221,7 +256,138 @@ body{
 
 <audio id="bgm" loop preload="auto" src="https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/Red_Ball_4_-_Menyu_(SkySound.cc).mp3"></audio>
 
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
 <script>
+let fbReady = false;
+try {
+    if (typeof FIREBASE_CONFIG !== 'undefined' && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.apiKey !== 'ВАШ_API_KEY') {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        fbReady = true;
+    }
+} catch(e) { console.log('firebase not configured'); }
+
+let currentUser = null;
+firebase.auth && firebase.auth().onAuthStateChanged(user => {
+    currentUser = user;
+    updateAuthUI();
+});
+
+function updateAuthUI() {
+    const authBtn = document.getElementById('authBtn');
+    const userInfo = document.getElementById('userInfo');
+    const emailEl = document.getElementById('userEmail');
+    if (currentUser) {
+        authBtn.style.display = 'none';
+        userInfo.style.display = 'flex';
+        emailEl.textContent = currentUser.email;
+    } else {
+        authBtn.style.display = '';
+        userInfo.style.display = 'none';
+    }
+}
+
+function saveResult(won, time, score, total, maxStk) {
+    if (!fbReady || !currentUser) return;
+    const elapsed = TIME_LIMIT - time;
+    const pct = total > 0 ? Math.round(score / total * 100) : 0;
+    firebase.firestore().collection('scores').add({
+        email: currentUser.email,
+        uid: currentUser.uid,
+        won: won,
+        time: elapsed,
+        timeStr: Math.floor(elapsed/60)+':'+String(elapsed%60).padStart(2,'0'),
+        score: score,
+        total: total,
+        accuracy: pct,
+        maxStreak: maxStk,
+        ts: firebase.firestore.FieldValue.serverTimestamp()
+    }).catch(() => {});
+}
+
+async function loadLeaderboard() {
+    const list = document.getElementById('leadList');
+    list.innerHTML = 'загрузка...';
+    if (!fbReady) { list.innerHTML = 'firebase не настроен'; return; }
+    try {
+        const snap = await firebase.firestore().collection('scores')
+            .where('won', '==', true)
+            .orderBy('time', 'asc')
+            .limit(20)
+            .get();
+        if (snap.empty) { list.innerHTML = 'пока нет результатов'; return; }
+        let html = '<table style="width:100%;border-collapse:collapse">';
+        let i = 1;
+        snap.forEach(doc => {
+            const d = doc.data();
+            const em = d.email || 'anon';
+            html += `<tr style="border-bottom:1px solid #2a2a34">
+                <td style="padding:6px 4px;color:#e94560;width:24px">${i}.</td>
+                <td style="padding:6px 4px">${em.split('@')[0]}</td>
+                <td style="padding:6px 4px;text-align:right;font-variant-numeric:tabular-nums">${d.timeStr}</td>
+                <td style="padding:6px 4px;text-align:right;color:#888">${d.score}pts</td>
+            </tr>`;
+            i++;
+        });
+        html += '</table>';
+        list.innerHTML = html;
+    } catch(e) { list.innerHTML = 'ошибка загрузки'; }
+}
+
+// auth modal
+const authModal = document.getElementById('authModal');
+const authTitle = document.getElementById('authTitle');
+const authEmail = document.getElementById('authEmail');
+const authPass = document.getElementById('authPass');
+const authAction = document.getElementById('authAction');
+const authCancel = document.getElementById('authCancel');
+const authToggle = document.getElementById('authToggle');
+const authError = document.getElementById('authError');
+let authMode = 'login';
+
+function openAuth(mode) {
+    authMode = mode;
+    authTitle.textContent = mode === 'login' ? 'войти' : 'регистрация';
+    authAction.textContent = mode === 'login' ? 'войти' : 'создать';
+    authError.textContent = '';
+    authModal.classList.add('show');
+}
+
+document.getElementById('authBtn').addEventListener('click', () => openAuth('login'));
+authCancel.addEventListener('click', () => authModal.classList.remove('show'));
+authToggle.addEventListener('click', () => openAuth(authMode === 'login' ? 'register' : 'login'));
+
+authAction.addEventListener('click', async () => {
+    const email = authEmail.value.trim();
+    const pass = authPass.value.trim();
+    if (!email || !pass) { authError.textContent = 'заполни поля'; return; }
+    if (pass.length < 6) { authError.textContent = 'пароль минимум 6 символов'; return; }
+    authError.textContent = '...';
+    try {
+        if (authMode === 'login') {
+            await firebase.auth().signInWithEmailAndPassword(email, pass);
+        } else {
+            await firebase.auth().createUserWithEmailAndPassword(email, pass);
+        }
+        authModal.classList.remove('show');
+        authEmail.value = '';
+        authPass.value = '';
+    } catch(e) {
+        authError.textContent = e.message;
+    }
+});
+
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    firebase.auth().signOut();
+});
+
+document.getElementById('leaderBtn').addEventListener('click', () => {
+    loadLeaderboard();
+    showScreen(document.getElementById('leadScr'));
+});
+document.getElementById('leadBack').addEventListener('click', goToMenu);
 const GH = 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/';
 const BUILTIN = [
   { file: GH + '4часа.jpg', desc: '"4 часа утра" — глубокой ночью не спишь' },
@@ -393,6 +559,8 @@ function endGame(won) {
         document.getElementById('loseStats').innerHTML = stats;
         showScreen(loseScr);
     }
+
+    saveResult(won, timeLeft, score, total, maxStreak);
 }
 
 function timerTick() {
@@ -566,15 +734,16 @@ function renderMlist() {
     });
 }
 
-addBtn.addEventListener('click', () => {
+document.getElementById('addMemeBtn').addEventListener('click', () => {
     loadCustomMemes().then(() => {
         renderMlist();
-        mTitle.textContent = customMemes.length ? `мемы (${customMemes.length})` : '+ добавить мем';
+        mTitle.textContent = customMemes.length ? `мемы (${customMemes.length} добавлено)` : '+ добавить мем';
         mDesc.value = ''; mFile.value = '';
         mPrev.innerHTML = '<span class="ph">превью</span>';
         mSave.disabled = true;
         modal.classList.add('show');
     });
+});
 });
 
 mCancel.addEventListener('click', () => modal.classList.remove('show'));
