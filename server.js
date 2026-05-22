@@ -9,6 +9,14 @@ const PORT = process.env.PORT || 3000;
 const MEME_DIR = path.join(__dirname, 'memes');
 const UPLOAD_DIR = path.join(__dirname, 'uploads');
 const DATA_FILE = path.join(__dirname, 'data', 'memes.json');
+const LOG_FILE = path.join(__dirname, 'server.log');
+
+function log(msg) {
+    const t = new Date().toISOString().replace('T', ' ').slice(0, 19);
+    const line = `[${t}] ${msg}`;
+    log(line);
+    try { fs.appendFileSync(LOG_FILE, line + '\n'); } catch (_) {}
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -115,22 +123,22 @@ function gitPull() {
     try {
         const cp = require('child_process');
         cp.execSync('git pull', { cwd: __dirname, stdio: 'pipe' });
-        console.log('git pull: ok');
+        log('git pull: ok');
     } catch (e) {
-        console.log('git pull: ' + (e.message || 'error'));
+        log('git pull: ' + (e.message || 'error'));
     }
 }
 
 gitPull();
 
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`сервер запущен: http://localhost:${PORT}`);
+    log(`сервер запущен: http://localhost:${PORT}`);
     const os = require('os');
     const ifaces = os.networkInterfaces();
     for (const name of Object.keys(ifaces)) {
         for (const iface of ifaces[name]) {
             if (iface.family === 'IPv4' && !iface.internal) {
-                console.log(`  в сети: http://${iface.address}:${PORT}`);
+                log(`  в сети: http://${iface.address}:${PORT}`);
             }
         }
     }
