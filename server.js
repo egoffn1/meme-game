@@ -56,7 +56,7 @@ function getBuiltinMemes() {
                 const basename = path.parse(f).name;
                 result.push({
                     id: 'b-' + basename,
-                    file: '/memes/' + f,
+                    file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/' + encodeURIComponent(f),
                     desc: descs[f] || basename,
                     builtin: true
                 });
@@ -110,6 +110,18 @@ app.delete('/api/memes/:id', (req, res) => {
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
+
+function gitPull() {
+    try {
+        const cp = require('child_process');
+        cp.execSync('git pull', { cwd: __dirname, stdio: 'pipe' });
+        console.log('git pull: ok');
+    } catch (e) {
+        console.log('git pull: ' + (e.message || 'error'));
+    }
+}
+
+gitPull();
 
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`сервер запущен: http://localhost:${PORT}`);
