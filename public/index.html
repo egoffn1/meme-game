@@ -175,7 +175,7 @@ body{
     </div>
 </div>
 
-<audio id="bgm" loop preload="auto" src="/memes/Red_Ball_4_-_Menyu_(SkySound.cc).mp3"></audio>
+<audio id="bgm" loop preload="auto" src="https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/Red_Ball_4_-_Menyu_(SkySound.cc).mp3"></audio>
 
 <script>
 let memes = [];
@@ -206,11 +206,64 @@ const mCancel = document.getElementById('mCancel');
 const mList = document.getElementById('mList');
 const mTitle = document.getElementById('mTitle');
 
+const BUILTIN = [
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/4%D1%87%D0%B0%D1%81%D0%B0.jpg', desc: '"4 часа утра" — глубокой ночью не спишь' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/mellstroy-bravo.gif', desc: 'Мелстрой говорит "Браво!"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/mellstroy-%D0%BC%D0%B5%D0%BB%D1%81%D1%82%D1%80%D0%BE%D0%B9.gif', desc: 'Мелстрой — стример, казино, неадекват' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/mellstroy.gif', desc: 'Мелстрой — скандальный стример' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/mellstroy1.gif', desc: 'Мелстрой — очередная эмоция' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/wind-face-nature.gif', desc: 'Ветер дует в лицо' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B0%D0%B2%D0%B0-%D0%BA%D1%80%D1%82-%D0%BA%D0%BE%D0%B1%D1%8F%D0%BA.jpg', desc: 'Кобяк из КРТ' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B0%D0%B4%D0%BC%D0%B8%D0%BD.jpg', desc: 'Мем про администратора' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B0%D1%88%D0%B8%D0%B1%D0%B0%D1%87%D0%BA%D0%B0.jpg', desc: '"Ошибочка вышла!"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B1%D0%B0%D0%BB%D0%B0%D1%88%D0%B8%D1%85%D0%B0.jpg', desc: 'Мем про Балашиху' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B1%D0%BB%D1%8F%D1%82%D1%8C-%D1%82%D0%B8%D0%BA-%D1%82%D0%B0%D0%BA.jpg', desc: '"Блять, тик-так"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B1%D0%BB%D1%8F%D1%82%D1%8C.jpg', desc: 'Классический "Блять"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B2%D0%B5%D0%B9%D0%BF%D0%B8%D1%82%D1%8C.jpg', desc: 'Мем про вейп' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B2%D0%B5%D0%BB%D1%8F%D1%81%D0%B8%D0%BA.jpg', desc: 'Велясик — игрок в Standoff 2' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B2%D0%BE%D0%B4%D0%BE%D0%BB%D0%B0%D0%B7.jpg', desc: 'Мем про водолаза' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%84%D0%BE%D0%B3-%D0%BC%D1%83%D1%80%D0%B8%D0%BD%D0%BE.gif', desc: 'Фог из Мурино — туман, Мелстрой' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B1%D0%BB%D1%8F_%D0%B1%D1%80%D0%B0%D1%82%D0%B0%D0%BD.jpg', desc: '"Бля, братан"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B1%D0%BB%D1%8F%D1%82%D1%8C_%D0%BA%D0%B0%D0%BA%D0%BE%D0%B9_%D1%8F_%D1%82%D1%83%D0%BF%D0%BE%D0%B9.jpg', desc: '"Блять, какой я тупой"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B2%D1%81%D0%B5%D0%BC_%D0%BF%D1%80%D0%B8%D0%B2%D0%B5%D1%82.jpg', desc: '"Всем привет"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B2%D1%8B%D0%BF%D0%B5%D0%B9_%D1%8D%D0%BB%D0%B5%D0%BA%D1%82%D1%80%D0%B8%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE.jpg', desc: '"Выпей электричество"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B4%D0%B0%D1%83%D0%BD.jpg', desc: 'Мем про дауна' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%B7%D0%B0%D0%B2%D1%82%D1%80%D0%B0.jpg', desc: '"Завтра" — вечное откладывание' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BA%D0%B0%D0%BA%D0%B0%D1%88%D0%BA%D0%B8.jpg', desc: 'Туалетный юмор' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BA%D0%B0%D1%87%D0%B5%D1%81%D1%82%D0%B2%D0%BE.jpg', desc: 'Мем про качество' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BA%D1%82%D0%BE_%D1%8D%D1%82%D0%BE_.jpg', desc: '"Кто это?"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BB%D0%B4%D1%8C%D1%80%D0%B3%D1%84%D0%B2%D0%B0.jpg', desc: 'Рандомный набор букв' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BB%D0%BE%D0%B1%D0%B0%D0%BD%D0%BE%D0%B2.jpg', desc: 'Мем про Лобанова' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BC%D0%B5%D0%BD%D1%8C%D0%B5%D1%82_%D1%81%D0%BC%D0%BE%D1%82%D1%80%D0%B8%D1%82_%D0%BD%D0%B0_%D1%82%D0%B5%D0%B1%D1%8F.jpg', desc: 'Меньет смотрит на тебя' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%B8%D0%B7%D0%B8%D1%80%D1%83%D0%B5%D0%BC.jpg', desc: 'Мобилизация с ошибкой' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BE%D0%B1%D1%80%D0%B0%D0%B7_%D0%B6%D0%B8%D0%B7%D0%BD%D0%B8.jpg', desc: 'Образ жизни' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BE%D0%BD%D0%B0%D0%BB%D0%B4%D0%BE_%D0%B2_%D1%8D%D0%B4%D0%B8%D1%82%D0%B5.jpg', desc: 'Оналдо в эдите' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BE%D1%82%D0%BC%D0%BE%D1%80%D0%BE%D0%B7%D0%BE%D0%BA.jpg', desc: 'Мем про отморозка' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BE%D1%88%D0%B8%D0%B1%D0%BA%D0%B0_%D1%8D%D0%B2%D0%BE%D0%BB%D1%8E%D1%82%D1%81%D1%8B%D1%8B.jpg', desc: '"Ошибка эволютсыы"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BF%D0%B8%D1%81%D1%8E%D0%BD.jpg', desc: 'Сортирный юмор' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BF%D0%B8%D1%81%D1%8E%D0%BD_%D0%B2_%D0%BC%D0%B0%D1%81%D0%BB%D0%B5.jpg', desc: 'Писюн в масле' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D0%BF%D0%BE%D0%B4%D0%B6%D0%B0%D1%80%D0%B8%D0%BB.jpg', desc: '"Поджарил" оппонента' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%81%D0%B2%D0%BE.jpg', desc: 'Политический мем' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%81%D0%B8%D1%81%D0%BA%D0%B5.jpg', desc: 'Мем про сиске' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%81%D0%B8%D1%81%D0%BA%D0%B5%D1%81.jpg', desc: 'Ещё про сискес' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%83%D0%B4%D0%B0%D0%BB%D0%B8_%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82.jpg', desc: '"Удали интернет"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%83%D0%B4%D0%B0%D0%BB%D0%B8_%D0%BC%D0%BE%D0%B7%D0%B3.jpg', desc: '"Удали мозг"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%83%D0%B4%D0%B0%D0%BB%D0%B8_%D1%82%D0%B5%D0%BB%D0%B5%D1%84%D0%BE%D0%BD.jpg', desc: '"Удали телефон"' },
+  { file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/%D1%8B.%D0%B8%D0%BA.jpg', desc: 'Абсурд "ы.ик"' },
+];
+
 async function loadMemes() {
-    const r = await fetch('/api/memes');
-    const data = await r.json();
-    memes = data.memes;
-    customMemes = memes.filter(m => !m.builtin);
+    memes = [...BUILTIN];
+    customMemes = [];
+    try {
+        const r = await fetch('/api/memes');
+        const data = await r.json();
+        const customFromServer = data.memes.filter(m => !m.builtin);
+        for (const c of customFromServer) {
+            memes.push({ file: c.file, desc: c.desc });
+            customMemes.push(c);
+        }
+    } catch (_) {}
     return memes;
 }
 
