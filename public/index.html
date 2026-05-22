@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Угадай мем</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden}
+body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+    background:#141418;color:#ddd;
+    display:flex;justify-content:center;align-items:center;padding:8px;user-select:none
+}
+.game{
+    width:100%;max-width:680px;height:100%;
+    background:#1c1c24;border-radius:12px;padding:12px 14px;
+    display:flex;flex-direction:column;border:1px solid #2a2a34;gap:6px
+}
+.head{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:8px}
+.head h2{font-size:16px;font-weight:600;color:#e94560;white-space:nowrap}
+.head .mid{display:flex;gap:10px;align-items:center;flex:1;justify-content:center}
+.head .mid .st{font-size:11px;color:#666;background:#252530;padding:2px 10px;border-radius:10px}
+.head .mid .st span{color:#f0c040;font-weight:700}
+.head .mid .st.on{border:1px solid #f0c040}
+.head .sc{font-size:13px;color:#777;background:#252530;padding:2px 12px;border-radius:10px;white-space:nowrap}
+.head .sc span{color:#eee;font-weight:600}
+.mus{
+    font-size:14px;cursor:pointer;color:#555;background:#252530;
+    width:28px;height:28px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    transition:color .2s;user-select:none
+}
+.mus.on{color:#e94560}
+.mus:hover{background:#333}
+._bar{height:2px;background:#252530;border-radius:2px;flex-shrink:0}
+._bar div{height:100%;width:0%;background:linear-gradient(90deg,#e94560,#f0c040);border-radius:2px;transition:width .4s}
+._desc{flex-shrink:0;background:#22222c;border-radius:8px;padding:8px 12px;text-align:center;border-left:3px solid #e94560}
+._desc small{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:#e94560;opacity:.7;display:block;margin-bottom:2px}
+._desc p{font-size:14px;line-height:1.4}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;flex:1;min-height:0}
+.grid .opt{
+    position:relative;border-radius:8px;overflow:hidden;cursor:pointer;
+    border:2px solid #2a2a34;background:#0d0d12;
+    display:flex;align-items:center;justify-content:center;transition:border-color .12s
+}
+.grid .opt:hover{border-color:#555}
+.grid .opt img{display:block;width:100%;height:100%;object-fit:contain}
+.grid .opt.correct{border-color:#2ecc71;background:#0a1f12}
+.grid .opt.wrong{border-color:#e74c3c;background:#1f0a0a}
+.grid .opt.disabled{pointer-events:none}
+.grid .opt.dim:not(.correct):not(.wrong){opacity:.2}
+.grid .opt .tag{
+    position:absolute;top:4px;right:4px;width:24px;height:24px;border-radius:50%;
+    display:none;align-items:center;justify-content:center;
+    font-size:13px;font-weight:700;z-index:2
+}
+.grid .opt.correct .tag{display:flex;background:#2ecc71;color:#fff}
+.grid .opt.wrong .tag{display:flex;background:#e74c3c;color:#fff}
+.btm{flex-shrink:0;display:flex;align-items:center;gap:8px}
+.btm .hint{font-size:11px;color:#555;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.btm .res{font-size:14px;font-weight:700;min-width:60px;text-align:center;flex-shrink:0;transition:transform .15s}
+.btm .res.ok{color:#2ecc71}
+.btm .res.no{color:#e74c3c}
+.btm .res.pop{transform:scale(1.3)}
+.btm button{
+    padding:7px 18px;border:none;border-radius:6px;font-size:12px;font-weight:600;
+    cursor:pointer;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0
+}
+.btm .nxt{background:#e94560;color:#fff}
+.btm .nxt:disabled{opacity:.2;cursor:default}
+.btm .rst{background:#2a2a34;color:#888}
+.btm .rst:hover{background:#333}
+.modal{
+    display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;
+    align-items:center;justify-content:center;padding:16px
+}
+.modal.show{display:flex}
+.modal-inner{
+    background:#1c1c24;border-radius:12px;padding:20px;
+    width:100%;max-width:380px;border:1px solid #2a2a34;
+    display:flex;flex-direction:column;gap:12px;max-height:90vh;overflow-y:auto
+}
+.modal-inner h3{font-size:15px;color:#e94560;font-weight:600}
+.modal-inner label{font-size:11px;color:#888;text-transform:uppercase;letter-spacing:1px}
+.modal-inner input[type="text"]{
+    background:#252530;border:1px solid #2a2a34;border-radius:6px;
+    padding:8px 10px;font-size:13px;color:#ddd;outline:none;width:100%;font-family:inherit
+}
+.modal-inner input[type="text"]:focus{border-color:#e94560}
+.modal-inner input[type="file"]{font-size:12px;color:#888}
+.modal-inner .prev{
+    width:100%;aspect-ratio:1;border-radius:8px;overflow:hidden;
+    background:#0d0d12;display:flex;align-items:center;justify-content:center;border:1px dashed #2a2a34
+}
+.modal-inner .prev img{max-width:100%;max-height:100%;object-fit:contain}
+.modal-inner .prev .ph{font-size:11px;color:#555}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end}
+.modal-btns button{
+    padding:8px 20px;border:none;border-radius:6px;font-size:12px;
+    font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:.5px
+}
+.modal-btns .m-save{background:#e94560;color:#fff}
+.modal-btns .m-save:disabled{opacity:.3;cursor:default}
+.modal-btns .m-cancel{background:#2a2a34;color:#888}
+.modal-btns .m-cancel:hover{background:#333}
+.mlist{display:flex;flex-direction:column;gap:4px;max-height:140px;overflow-y:auto}
+.mlist::-webkit-scrollbar{width:3px}
+.mlist::-webkit-scrollbar-thumb{background:#333;border-radius:2px}
+.mlist-it{
+    display:flex;align-items:center;gap:6px;background:#252530;
+    border-radius:6px;padding:4px 6px;font-size:11px
+}
+.mlist-it img{width:28px;height:28px;object-fit:cover;border-radius:4px;flex-shrink:0}
+.mlist-it span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#aaa}
+.mlist-it button{border:none;background:none;cursor:pointer;font-size:13px;padding:2px 4px;border-radius:4px;flex-shrink:0}
+.mlist-it .mle{color:#888}
+.mlist-it .mle:hover{background:#333;color:#ddd}
+.mlist-it .mld{color:#e74c3c}
+.mlist-it .mld:hover{background:#3a1a1a}
+@media(max-width:380px){
+    .game{padding:10px 10px 8px}
+    ._desc p{font-size:12px}
+    .grid{gap:5px}
+    .grid .opt{border-width:1px;border-radius:6px}
+    .btm button{padding:5px 12px;font-size:11px}
+}
+@media(max-height:480px){
+    ._desc{padding:4px 8px}
+    ._desc p{font-size:12px}
+    .grid{gap:4px}
+    .btm{padding-top:2px}
+    .btm button{padding:4px 12px;font-size:10px}
+}
+</style>
+</head>
+<body>
+<div class="game">
+    <div class="head">
+        <h2>угадай мем</h2>
+        <div class="mid">
+            <div class="st" id="streakEl">🔥 <span id="streak">0</span></div>
+        </div>
+        <div class="sc"><span id="s">0</span>/<span id="t">0</span></div>
+        <div class="mus" id="addBtn" title="добавить мем">+</div>
+        <div class="mus" id="musBtn" title="музыка">♫</div>
+    </div>
+    <div class="_bar"><div id="bar"></div></div>
+    <div class="_desc">
+        <small>что это за мем?</small>
+        <p id="desc">—</p>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="btm">
+        <div class="hint" id="hint">тыкни на картинку</div>
+        <div class="res" id="res"></div>
+        <button class="nxt" id="nxt" disabled>дальше</button>
+        <button class="rst" id="rst">заново</button>
+    </div>
+</div>
+
+<div class="modal" id="modal">
+    <div class="modal-inner">
+        <h3 id="mTitle">+ добавить мем</h3>
+        <div id="mList"></div>
+        <label>описание</label>
+        <input type="text" id="mDesc" placeholder="напиши описание">
+        <label>картинка / гифка</label>
+        <input type="file" id="mFile" accept="image/*">
+        <div class="prev" id="mPrev"><span class="ph">превью</span></div>
+        <div class="modal-btns">
+            <button class="m-cancel" id="mCancel">отмена</button>
+            <button class="m-save" id="mSave" disabled>сохранить</button>
+        </div>
+    </div>
+</div>
+
+<audio id="bgm" loop preload="auto" src="/memes/Red_Ball_4_-_Menyu_(SkySound.cc).mp3"></audio>
+
+<script>
+let memes = [];
+let customMemes = [];
+let used = new Set();
+let cur = null;
+let answered = false;
+let score = 0, total = 0, streak = 0;
+
+const grid = document.getElementById('grid');
+const desc = document.getElementById('desc');
+const sEl = document.getElementById('s');
+const tEl = document.getElementById('t');
+const bar = document.getElementById('bar');
+const nxt = document.getElementById('nxt');
+const rst = document.getElementById('rst');
+const res = document.getElementById('res');
+const hint = document.getElementById('hint');
+const streakEl = document.getElementById('streak');
+const streakBox = document.getElementById('streakEl');
+const addBtn = document.getElementById('addBtn');
+const modal = document.getElementById('modal');
+const mDesc = document.getElementById('mDesc');
+const mFile = document.getElementById('mFile');
+const mPrev = document.getElementById('mPrev');
+const mSave = document.getElementById('mSave');
+const mCancel = document.getElementById('mCancel');
+const mList = document.getElementById('mList');
+const mTitle = document.getElementById('mTitle');
+
+async function loadMemes() {
+    const r = await fetch('/api/memes');
+    const data = await r.json();
+    memes = data.memes;
+    customMemes = memes.filter(m => !m.builtin);
+    return memes;
+}
+
+function shf(a) {
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
+function beep(freq, dur, vol) {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.value = vol;
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + dur);
+    } catch (_) {}
+}
+
+function pick() {
+    const avail = [];
+    for (let i = 0; i < memes.length; i++) {
+        if (!used.has(i)) avail.push(i);
+    }
+    if (avail.length < 4) return null;
+    const shuffled = shf([...avail]);
+    const corr = shuffled[0];
+    used.add(corr);
+    return { corr, opts: shf([corr, ...shuffled.slice(1, 4)]) };
+}
+
+function randReward() {
+    const r = Math.random();
+    if (r < 0.05) return 5;
+    if (r < 0.2) return 3;
+    if (r < 0.5) return 2;
+    return 1;
+}
+
+function round() {
+    answered = false;
+    res.textContent = '';
+    res.className = 'res';
+    nxt.disabled = true;
+    hint.textContent = 'тыкни на картинку';
+    const p = pick();
+    if (!p) {
+        const pct = Math.round(score / memes.length * 100);
+        res.textContent = `🎉 всё! ${score}/${memes.length} (${pct}%)`;
+        res.className = 'res ok';
+        nxt.disabled = true;
+        hint.textContent = 'жми «заново»';
+        grid.innerHTML = '';
+        desc.textContent = '—';
+        return;
+    }
+    cur = p;
+    desc.textContent = memes[cur.corr].desc;
+    grid.innerHTML = '';
+    for (const idx of cur.opts) {
+        const el = document.createElement('div');
+        el.className = 'opt';
+        el.dataset.i = idx;
+        const img = document.createElement('img');
+        img.src = memes[idx].file;
+        img.alt = '';
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        el.append(img, tag);
+        el.addEventListener('click', () => {
+            if (answered) return;
+            answered = true;
+            total++;
+            let gained = 0;
+            document.querySelectorAll('.opt').forEach(o => o.classList.add('disabled', 'dim'));
+            if (idx === cur.corr) {
+                gained = randReward();
+                score += gained;
+                streak++;
+                el.classList.remove('dim');
+                el.classList.add('correct');
+                el.querySelector('.tag').textContent = '✓';
+                beep(660, 0.12, 0.15);
+                setTimeout(() => beep(880, 0.15, 0.12), 100);
+                let txt = 'да';
+                if (gained >= 5) txt = '🔥 ДЖЕКПОТ +' + gained;
+                else if (gained >= 3) txt = '🔥 КРИТ +' + gained;
+                else txt = 'да +' + gained;
+                res.textContent = txt;
+                res.className = 'res ok';
+                res.classList.add('pop');
+                setTimeout(() => res.classList.remove('pop'), 200);
+            } else {
+                streak = 0;
+                el.classList.remove('dim');
+                el.classList.add('wrong');
+                el.querySelector('.tag').textContent = '✗';
+                beep(300, 0.2, 0.15);
+                document.querySelectorAll('.opt').forEach(o => {
+                    if (+o.dataset.i === cur.corr) {
+                        o.classList.remove('dim');
+                        o.classList.add('correct');
+                        o.querySelector('.tag').textContent = '✓';
+                    }
+                });
+                res.textContent = 'нет';
+                res.className = 'res no';
+            }
+            streakEl.textContent = streak;
+            streakBox.classList.toggle('on', streak >= 3);
+            sEl.textContent = score;
+            tEl.textContent = total;
+            bar.style.width = (used.size / memes.length * 100) + '%';
+            hint.textContent = memes[cur.corr].desc;
+            nxt.disabled = false;
+        });
+        grid.appendChild(el);
+    }
+}
+
+function resetGame() {
+    used = new Set();
+    score = 0; total = 0; streak = 0;
+    sEl.textContent = '0'; tEl.textContent = '0';
+    streakEl.textContent = '0'; streakBox.classList.remove('on');
+    bar.style.width = '0%'; res.textContent = ''; res.className = 'res';
+    round();
+}
+
+nxt.addEventListener('click', () => {
+    if (used.size >= memes.length) {
+        const pct = Math.round(score / memes.length * 100);
+        res.textContent = `🎉 всё! ${score}/${memes.length} (${pct}%)`;
+        res.className = 'res ok';
+        nxt.disabled = true;
+        hint.textContent = 'жми «заново»';
+        return;
+    }
+    round();
+});
+
+rst.addEventListener('click', async () => {
+    await loadMemes();
+    resetGame();
+});
+
+// music
+const bgm = document.getElementById('bgm');
+const musBtn = document.getElementById('musBtn');
+let musicOn = false;
+musBtn.addEventListener('click', () => {
+    musicOn = !musicOn;
+    musBtn.classList.toggle('on', musicOn);
+    if (musicOn) { bgm.volume = 0.12; bgm.play().catch(() => { musicOn = false; musBtn.classList.remove('on'); }); }
+    else { bgm.pause(); bgm.currentTime = 0; }
+});
+
+// modal
+function renderMlist() {
+    mList.innerHTML = '';
+    if (!customMemes.length) return;
+    mList.innerHTML = '<div class="mlist">' + customMemes.map((c, i) =>
+        `<div class="mlist-it">
+            <img src="${c.file}"><span>${c.desc}</span>
+            <button class="mld" data-d="${i}">✕</button>
+        </div>`
+    ).join('') + '</div>';
+    mList.querySelectorAll('.mld').forEach(b => {
+        b.addEventListener('click', async () => {
+            if (!confirm('удалить этот мем?')) return;
+            await fetch('/api/memes/' + b.dataset.d, { method: 'DELETE' });
+            await loadMemes();
+            renderMlist();
+            resetGame();
+        });
+    });
+}
+
+addBtn.addEventListener('click', () => {
+    renderMlist();
+    mTitle.textContent = customMemes.length ? `мемы (${customMemes.length} добавлено)` : '+ добавить мем';
+    mDesc.value = '';
+    mFile.value = '';
+    mPrev.innerHTML = '<span class="ph">превью</span>';
+    mSave.disabled = true;
+    modal.classList.add('show');
+});
+
+mCancel.addEventListener('click', () => modal.classList.remove('show'));
+
+mFile.addEventListener('change', () => {
+    const file = mFile.files[0];
+    if (!file) { mPrev.innerHTML = '<span class="ph">превью</span>'; mSave.disabled = true; return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        mPrev.innerHTML = `<img src="${e.target.result}">`;
+        mSave.disabled = !mDesc.value.trim();
+    };
+    reader.readAsDataURL(file);
+});
+
+mDesc.addEventListener('input', () => {
+    mSave.disabled = !(mDesc.value.trim() && mPrev.querySelector('img'));
+});
+
+mSave.addEventListener('click', async () => {
+    const file = mFile.files[0];
+    if (!file || !mDesc.value.trim()) return;
+    const form = new FormData();
+    form.append('image', file);
+    form.append('desc', mDesc.value.trim());
+    await fetch('/api/memes', { method: 'POST', body: form });
+    await loadMemes();
+    modal.classList.remove('show');
+    resetGame();
+});
+
+(async () => {
+    await loadMemes();
+    round();
+})();
+</script>
+</body>
+</html>
