@@ -56,7 +56,7 @@ function getBuiltinMemes() {
                 const basename = path.parse(f).name;
                 result.push({
                     id: 'b-' + basename,
-                    file: 'https://raw.githubusercontent.com/egoffn1/meme-game/main/memes/' + encodeURIComponent(f),
+                    file: '/memes/' + f,
                     desc: descs[f] || basename,
                     builtin: true
                 });
